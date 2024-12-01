@@ -4,10 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GreetingserviceApplication {
+public class GreetingServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GreetingserviceApplication.class, args);
+		SpringApplication.run(GreetingServiceApplication.class, args);
 	}
-
 }

@@ -9,7 +9,7 @@ import ru.mephi.greetingservice.dto.ResponseDto;
 import ru.mephi.greetingservice.service.GreetingService;
 
 @RestController
-@RequestMapping("/greet")
+@RequestMapping("/greeting")
 public class GreetingController {
 
     private final GreetingService greetingService;

@@ -10,7 +10,7 @@ public class GreetingServiceImpl implements GreetingService {
     @Override
     public ResponseDto greet() {
         return ResponseDto.builder()
-                .message("Hello world!")
+                .message("Hello, world!")
                 .result(true)
                 .build();
     }

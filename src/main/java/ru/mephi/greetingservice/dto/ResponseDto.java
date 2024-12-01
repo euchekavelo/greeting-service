@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class ResponseDto {
 
-    public String message;
-    public boolean result;
+    private String message;
+    private boolean result;
 }
