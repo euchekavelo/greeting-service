@@ -7,15 +7,22 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: clone repository
         uses: actions/checkout@v3
+
+      - name: setup java and gradle
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: "temurin"
+
       - name: run tests
         run: ./gradlew test
 
   print:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: test
     steps:
       - name: print message
