@@ -36,9 +36,9 @@ jobs:
     runs-on: self-hosted
     needs: build
     steps:
-      - name: Clear docker objects.
+      - name: Stop the container and delete the docker objects.
         run: |
-          docker stop ${{ vars.CONTAINER_NAME }}
+          docker stop ${{ vars.CONTAINER_NAME }} || true
           docker system prune -a -f
 
       - name: Pull project updated image and create new docker container.
