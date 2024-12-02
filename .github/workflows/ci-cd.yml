@@ -1,50 +1,72 @@
+#Наименование нашего Workflow
 name: Workflow for greeting service
 
+#Тут определяем, что запуск пайплайна будет происходить при пуше в ветку main.
 on:
   push:
     branches:
       - main
 
+#Тут определяем список джобов, которые буду исполняться в рамках пайплайна.
 jobs:
-  test:
-    runs-on: self-hosted
-    steps:
-      - name: Clone repository.
-        uses: actions/checkout@v3
+  test: #Джоб этапа тестирования.
+    runs-on: self-hosted #Тут указываем, что на нашем раннере будет выполняться текущий джоб.
+    steps: #Список шагов, которые буду выполнены в рамках текущего джоба.
+      - name: Clone repository. #Наименование шага №1.
+        uses: actions/checkout@v3 #Используем указанное готовое действие GitHub для клонирования кода репозитория.
 
-      - name: Run tests.
-        run: ./gradlew clean test
+      - name: Run unit tests. #Наименование шага №2.
+        run: ./gradlew clean test #Используем указанную команду сборщика Gradle для запуска юнит-тестов.
 
-  build:
-    runs-on: self-hosted
-    needs: test
-    steps:
-      - name: Clone repository.
-        uses: actions/checkout@v3
+  build: #Джоб этапа сборки.
+    runs-on: self-hosted #Тут указываем, что на нашем раннере будет выполняться текущий джоб.
+    needs: test #Тут указываем, что данный джоб этапа должен будет выполняться после джоба этапа тестирования.
+    steps: #Список шагов, которые буду выполнены в рамках текущего джоба.
+      - name: Clone repository. #Наименование шага №1.
+        uses: actions/checkout@v3 #Используем указанное готовое действие GitHub для клонирования кода репозитория.
 
-      - name: Build project.
-        run: ./gradlew clean bootJar
+      - name: Build project. #Наименование шага №2.
+        run: ./gradlew clean bootJar #Используем указанную команду сборщика Gradle для сборки артефакта приложения.
 
-      - name: Build a project image and send it to docker storage.
+      - name: Build a project image and send it to docker storage. #Наименование шага №3.
+
+        #Список команд шага, исполняющихся последовательно:
+        #1. Выполняем подключение к сервису Docker Hub, используя данные УЗ для входа;
+        #2. Производим сборку обновленного образа приложения на основе имеющегося файла Dockerfile в корне проекта;
+        #3. Производим отправку нового образа приложения в репозиторий Docker Hub.
+        #Пояснения по использованию secrets и vars:
+        #1. Логин и пароль от УЗ сервиса Docker Hub указаны в секретах, заданных в настройка репозитория (префикс "secrets");
+        #2. Имя аккаунта, имя репозитория, тэг указаны в переменных, заданных в настройка репозитория (префикс "vars")
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          echo ${{ vars.ACCOUNT_NAME }} 
-          docker build -t ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }} .
-          docker push ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
+          docker build -t ${{ vars.DOCKER_ACCOUNT_NAME }}/${{ vars.DOCKER_REPOSITORY_NAME }}:${{ vars.TAG }} .
+          docker push ${{ vars.DOCKER_ACCOUNT_NAME }}/${{ vars.DOCKER_REPOSITORY_NAME }}:${{ vars.TAG }}
 
-  deploy:
-    runs-on: self-hosted
-    needs: build
-    steps:
-      - name: Stop the container and delete the docker objects.
+  deploy: #Джоб этапа развертывания.
+    runs-on: self-hosted #Тут указываем, что на нашем раннере будет выполняться текущий джоб.
+    needs: build #Тут указываем, что данный джоб этапа должен будет выполняться после джоба этапа сборки.
+    steps: #Список шагов, которые буду выполнены в рамках текущего джоба.
+      - name: Stop the container and delete the docker objects. #Наименование шага №1.
+
+        #Список команд шага, исполняющихся последовательно:
+        #1. Останавливаем старый контейнер приложения, если он существует и запущен;
+        #2. Удаляем неиспользуемые данные докера (мы выполняем это лишь в нашем случае, так как в докере всего один контейнер)
         run: |
           docker stop ${{ vars.CONTAINER_NAME }} || true
           docker system prune -a -f
 
-      - name: Pull project updated image and create new docker container.
+      - name: Pull project updated image and create new docker container. #Наименование шага №2.
+
+        #Список команд шага, исполняющихся последовательно:
+        #1. Выполняем подключение к сервису Docker Hub, используя данные УЗ для входа;
+        #2. Скачиваем обновленный образ приложения из нашего репозитория;
+        #3. Запускаем контейнер приложения на основе обновленного образа.
+        #Пояснения по использованию secrets и vars:
+        #1. Логин и пароль от УЗ сервиса Docker Hub указаны в секретах, заданных в настройка репозитория (префикс "secrets");
+        #2. Имя аккаунта, имя репозитория, тэг указаны в переменных, заданных в настройка репозитория (префикс "vars")
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker pull ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
+          docker pull ${{ vars.DOCKER_ACCOUNT_NAME }}/${{ vars.DOCKER_REPOSITORY_NAME }}:${{ vars.TAG }}
           docker run -d -p 80:8080 \
            --name ${{ vars.CONTAINER_NAME }} \
-           ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
+           ${{ vars.DOCKER_ACCOUNT_NAME }}/${{ vars.DOCKER_REPOSITORY_NAME }}:${{ vars.TAG }}
