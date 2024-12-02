@@ -28,7 +28,7 @@ jobs:
       - name: Build a project image and send it to docker storage.
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker build -t greeting-service-image:latest .
+          docker build -t euchekavelo/greeting-service:latest .
           docker push euchekavelo/greeting-service:latest
 
 #  deploy:
