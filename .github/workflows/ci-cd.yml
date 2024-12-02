@@ -31,17 +31,17 @@ jobs:
           docker build -t euchekavelo/greeting-service:latest .
           docker push euchekavelo/greeting-service:latest
 
-#  deploy:
-#    runs-on: self-hosted
-#    needs: build
-#    steps:
-#      - name: Download project image from docker storage.
-#        run: |
-#          docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-#          docker pull euchekavelo/greeting-service:latest
-#
-#      - name: Download project image from docker storage.
-#        run: |
-#          docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
-#          docker pull euchekavelo/greeting-service:latest
-#          docker run -d -p 8080:8080 --name greeting-service-container euchekavelo/greeting-service:latest
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Clear all docker objects.
+        run: |
+          docker stop greeting-service-container || true
+          docker system prune -a -f
+
+      - name: Pull project image and create docker container.
+        run: |
+          docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+          docker pull euchekavelo/greeting-service:latest
+          docker run -d -p 8080:8080 --name greeting-service-container euchekavelo/greeting-service:latest
