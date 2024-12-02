@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Clear docker objects.
         run: |
-          docker stop ${{ vars.CONTAINER_NAME }} || true
+          docker stop ${{ vars.CONTAINER_NAME }}
           docker system prune -a -f
 
       - name: Pull project updated image and create new docker container.
