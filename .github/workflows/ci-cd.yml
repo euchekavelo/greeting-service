@@ -28,9 +28,9 @@ jobs:
       - name: Build a project image and send it to docker storage.
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          echo ${{ variables.ACCOUNT_NAME }} 
-          docker build -t ${{ variables.ACCOUNT_NAME }}/${{ variables.REPOSITORY_NAME }}:${{ variables.TAG }} .
-          docker push ${{ variables.ACCOUNT_NAME }}/${{ variables.REPOSITORY_NAME }}:${{ variables.TAG }}
+          echo ${{ vars.ACCOUNT_NAME }} 
+          docker build -t ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }} .
+          docker push ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
 
   deploy:
     runs-on: self-hosted
@@ -38,13 +38,13 @@ jobs:
     steps:
       - name: Clear docker objects.
         run: |
-          docker stop ${{ variables.CONTAINER_NAME }} || true
+          docker stop ${{ vars.CONTAINER_NAME }} || true
           docker system prune -a -f
 
       - name: Pull project updated image and create new docker container.
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker pull ${{ variables.ACCOUNT_NAME }}/${{ variables.REPOSITORY_NAME }}:${{ variables.TAG }}
+          docker pull ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
           docker run -d -p 80:8080 \
-           --name ${{ variables.CONTAINER_NAME }} \
-           ${{ variables.ACCOUNT_NAME }}/${{ variables.REPOSITORY_NAME }}:${{ variables.TAG }}
+           --name ${{ vars.CONTAINER_NAME }} \
+           ${{ vars.ACCOUNT_NAME }}/${{ vars.REPOSITORY_NAME }}:${{ vars.TAG }}
