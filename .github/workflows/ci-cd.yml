@@ -9,15 +9,39 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-      - name: Clone repository
+      - name: Clone repository.
         uses: actions/checkout@v3
 
-      - name: run tests
-        run: ./gradlew test
+      - name: Run tests.
+        run: ./gradlew clean test
 
-  print:
+  build:
     runs-on: self-hosted
     needs: test
     steps:
-      - name: print message
-        run: echo 'Finish!132323'
+      - name: Clone repository.
+        uses: actions/checkout@v3
+
+      - name: Build project.
+        run: ./gradlew clean bootJar
+
+      - name: Build a project image and send it to docker storage.
+        run: |
+          docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+          docker build -t greeting-service-image:latest .
+          docker push euchekavelo/greeting-service:latest
+
+#  deploy:
+#    runs-on: self-hosted
+#    needs: build
+#    steps:
+#      - name: Download project image from docker storage.
+#        run: |
+#          docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+#          docker pull euchekavelo/greeting-service:latest
+#
+#      - name: Download project image from docker storage.
+#        run: |
+#          docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+#          docker pull euchekavelo/greeting-service:latest
+#          docker run -d -p 8080:8080 --name greeting-service-container euchekavelo/greeting-service:latest
