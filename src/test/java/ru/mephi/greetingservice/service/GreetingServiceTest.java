@@ -19,7 +19,7 @@ class GreetingServiceTest {
 
 	@Test
 	void checkMessageResponseContainsStringValueTest() {
-		assertThat(greetingService.greet().getMessage()).contains("Hello2, world!");
+		assertThat(greetingService.greet().getMessage()).contains("Hello, world!");
 	}
 
 	@Test
