@@ -28,20 +28,22 @@ jobs:
       - name: Build a project image and send it to docker storage.
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker build -t euchekavelo/greeting-service:latest .
-          docker push euchekavelo/greeting-service:latest
+          docker build -t ${{ env.ACCOUNT_NAME }}/${{ env.REPOSITORY_NAME }}:${{ env.TAG }} .
+          docker push ${{ env.ACCOUNT_NAME }}/${{ env.REPOSITORY_NAME }}:${{ env.TAG }}
 
   deploy:
     runs-on: self-hosted
     needs: build
     steps:
-      - name: Clear all docker objects.
+      - name: Clear docker objects.
         run: |
-          docker stop greeting-service-container || true
+          docker stop ${{ env.CONTAINER_NAME }} || true
           docker system prune -a -f
 
-      - name: Pull project image and create docker container.
+      - name: Pull project updated image and create new docker container.
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_LOGIN }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker pull euchekavelo/greeting-service:latest
-          docker run -d -p 8080:8080 --name greeting-service-container euchekavelo/greeting-service:latest
+          docker pull ${{ env.ACCOUNT_NAME }}/${{ env.REPOSITORY_NAME }}:${{ env.TAG }}
+          docker run -d -p 80:8080 \
+           --name ${{ env.CONTAINER_NAME }} \
+           ${{ env.ACCOUNT_NAME }}/${{ env.REPOSITORY_NAME }}:${{ env.TAG }}
